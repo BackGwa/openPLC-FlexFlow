@@ -14,11 +14,20 @@ function on_failure() {
     console.log("FlexHMI - MQTT Connect Failure!");
 }
 
+function on_message(message) {
+    console.log("FlexHMI - Message : " + message.payloadString);
+}
+
 function test_send() {
     msg = "TEST";
     message = new Paho.MQTT.Message(msg);
     message.destinationName = "flexflow/asm/rpi01";
     mqtt.send(message); 
+}
+
+function test_subscribe() {
+    mqtt.subscribe("flexflow/#");
+    mqtt.onMessageArrived = on_message;
 }
 
 function MQTT_connect() {
