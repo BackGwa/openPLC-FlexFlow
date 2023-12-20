@@ -1,79 +1,118 @@
+import cv2
+import numpy as np
+import paho.mqtt.client as mqtt
+from FlexMQTT import INT, MEMORY, SESSION_ID, TOPIC
 
-import cv2                      # 이미지 처리를 위한 opencv 모듈 가져오기
-import numpy as np              # numpy array를 위한 모듈 가져오기
 
-# 배경 차분을 위한 객체 생성
-bg_subtractor = cv2.createBackgroundSubtractorMOG2()
+# MQTT 브로커 선언
+BROKER = "broker.hivemq.com"
+PORT = 1883
 
-# 카메라 연결
-cap = cv2.VideoCapture(0)
+# MQTT 세션 선언
+SESSION = "asm"
+MODULE = "rpi01"
 
-while True:
-    # 프레임 읽기
-    ret, frame = cap.read()
+# 색상 별 메모리 주소 선언
+TOPIC_RED   = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 0))
+TOPIC_GREEN = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 1))
+TOPIC_BLUE  = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 2))
 
-    # BGR을 HSV로 변환
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+# 카메라 디바이스 번호
+DEVICE_INDEX = 2
 
-    # 빨간색의 HSV 범위 정의
-    lower_red = np.array([0, 100, 100])
-    upper_red = np.array([10, 255, 255])
-    lower_red2 = np.array([160, 100, 100])
-    upper_red2 = np.array([180, 255, 255])
 
-    # 노란색의 HSV 범위 정의
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
+# 프로그램 메인
+def main():
+    
+    # MQTT 클라이언트 초기화
+    ID = SESSION_ID(SESSION, MODULE)
+    client = mqtt.Client(ID)
+    client.connect(BROKER, PORT, 60)
+    
+    print(f"SESSION ID : {ID}")
+    print(f"TOPIC RED   : {TOPIC_RED}")
+    print(f"TOPIC GREEN : {TOPIC_GREEN}")
+    print(f"TOPIC BLUE  : {TOPIC_BLUE}")
+    
+    # OpenCV 캡쳐 디바이스 설정
+    capture = cv2.VideoCapture(DEVICE_INDEX)
+    
+    
+    # 각 색상별 카운터
+    RED_COUNTER = 0
+    GREEN_COUNTER = 0
+    BLUE_COUNTER = 0
+    
+    # 색상 감지 연속 제한 변수 선언
+    detected = False
+    
+    while True:
+        ret, frame = capture.read()                     # 프레임 읽기
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)    # BGR에서 HSV로 변환
 
-    # 파란색의 HSV 범위 정의
-    lower_blue = np.array([110, 50, 50])
-    upper_blue = np.array([130, 255, 255])
+        # 빨간색 감지 범위
+        lower_red = np.array([0, 100, 100])
+        upper_red = np.array([10, 255, 255])
+        red_mask = cv2.inRange(hsv, lower_red, upper_red)
 
-    # 각 색상에 대한 마스크 생성
-    mask_red1 = cv2.inRange(hsv, lower_red, upper_red)
-    mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
-    mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+        # 초록색 감지 범위
+        lower_green = np.array([40, 40, 40])
+        upper_green = np.array([80, 255, 255])
+        green_mask = cv2.inRange(hsv, lower_green, upper_green)
 
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        # 파란색 감지 범위
+        lower_blue = np.array([110, 50, 50])
+        upper_blue = np.array([130, 255, 255])
+        blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-    mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
+        # 빨간색 감지
+        if not detected and cv2.countNonZero(red_mask) > 10000:
+            RED_COUNTER += 1
+            client.publish(
+                TOPIC_RED,
+                RED_COUNTER
+            )
+            print(f"RED : {RED_COUNTER}")
+        
+        # 초록색 감지
+        elif not detected and cv2.countNonZero(green_mask) > 10000:
+            GREEN_COUNTER += 1
+            client.publish(
+                TOPIC_GREEN,
+                GREEN_COUNTER
+            )
+            print(f"GREEN : {GREEN_COUNTER}")
+       
+        # 파란색 감지
+        elif not detected and cv2.countNonZero(blue_mask) > 10000:
+            BLUE_COUNTER += 1
+            client.publish(
+                TOPIC_BLUE,
+                BLUE_COUNTER
+            )
+            print(f"BLUE : {BLUE_COUNTER}")
 
-    # 원본 이미지에서 각 색상 부분만 남기기
-    result_red = cv2.bitwise_and(frame, frame, mask=mask_red)
-    result_yellow = cv2.bitwise_and(frame, frame, mask=mask_yellow)
-    result_blue = cv2.bitwise_and(frame, frame, mask=mask_blue)
+        # 색상 감지 연속 제한
+        if detected and (not (cv2.countNonZero(red_mask) > 10000) and (not (cv2.countNonZero(green_mask) > 10000)) and (not (cv2.countNonZero(blue_mask) > 10000))):
+            detected = False
+        else:
+            detected = True
 
-    # 전체적인 결과 이미지 표시
-    result_combined = cv2.bitwise_or(result_red, cv2.bitwise_or(result_yellow, result_blue))
+        # 원본 이미지에 마스크 적용
+        result_frame = cv2.bitwise_and(frame, frame, mask=red_mask + green_mask + blue_mask)
 
-    # 배경 차분을 통한 전경 추출
-    fg_mask = bg_subtractor.apply(result_combined)
+        # 결과 프레임 출력
+        cv2.imshow('FlexVision', result_frame)
 
-    # 노이즈 제거를 위한 모폴로지 연산
-    kernel = np.ones((5, 5), np.uint8)
-    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+        # 종료 키 감지
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    # 캡쳐 리소스 할당 해제
+    capture.release()
+    cv2.destroyAllWindows()
 
-    # 윤곽선 검출
-    contours, hierarchy = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # 윤곽선 그리기
-    frame_with_contours = frame.copy()
-    cv2.drawContours(frame_with_contours, contours, -1, (0, 255, 0), 2)
-
-    cv2.imshow('Combined Result', result_combined)
-
-    # 특정 색상이 감지되면 메시지 출력
-    if cv2.countNonZero(mask_red) > 10000:
-        print("빨간색이 감지되었습니다.")
-    elif cv2.countNonZero(mask_yellow) > 10000:
-        print("노란색이 감지되었습니다.")
-    elif cv2.countNonZero(mask_blue) > 10000:
-        print("파란색이 감지되었습니다.")
-
-    # 종료 조건
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# 작업 완료 후 해제
-cap.release()
-cv2.destroyAllWindows()
+# 프로그램 시작점
+if __name__ == '__main__':
+    main()
