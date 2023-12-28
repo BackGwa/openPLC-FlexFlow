@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import paho.mqtt.client as mqtt
 from FlexMQTT import INT, MEMORY, SESSION_ID, TOPIC
+from time import sleep as delay
 
 
 # MQTT 브로커 선언
@@ -10,7 +11,7 @@ PORT = 1883
 
 # MQTT 세션 선언
 SESSION = "asm"
-MODULE = "rpi01"
+MODULE = "jetson01"
 
 # 색상 별 메모리 주소 선언
 TOPIC_RED   = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 0))
@@ -18,7 +19,7 @@ TOPIC_GREEN = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 1))
 TOPIC_BLUE  = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 2))
 
 # 카메라 디바이스 번호
-DEVICE_INDEX = 2
+DEVICE_INDEX = 0
 
 
 # 프로그램 메인
@@ -72,6 +73,7 @@ def main():
                 TOPIC_RED,
                 RED_COUNTER
             )
+            delay(0.1)
             print(f"RED : {RED_COUNTER}")
         
         # 초록색 감지
@@ -81,6 +83,7 @@ def main():
                 TOPIC_GREEN,
                 GREEN_COUNTER
             )
+            delay(0.1)
             print(f"GREEN : {GREEN_COUNTER}")
        
         # 파란색 감지
@@ -90,6 +93,7 @@ def main():
                 TOPIC_BLUE,
                 BLUE_COUNTER
             )
+            delay(0.1)
             print(f"BLUE : {BLUE_COUNTER}")
 
         # 색상 감지 연속 제한
