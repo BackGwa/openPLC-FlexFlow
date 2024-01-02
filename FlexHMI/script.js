@@ -8,6 +8,7 @@ function randint(min, max) {
 
 function on_connect() {
     console.log("FlexHMI - MQTT Connected!");
+    subscribe();
 }
 
 function on_failure() {
@@ -15,18 +16,31 @@ function on_failure() {
 }
 
 function on_message(message) {
-    console.log("FlexHMI - Message : " + message.payloadString);
+    msg = message.payloadString;
+    topic = message.destinationName.split("/");
+
+    if (topic[3] == "INPUT") {
+        query = "I";
+    } else if (topic[3] == "OUTPUT") {
+        query = "Q";
+    } else if (topic[3] == "MEMORY") {
+        query = "M";
+    }
+
+    query += topic[5];
+
+    stat = document.querySelector(`#${query}`);
+    lamp = stat.querySelector("item-lamp");
+
+    if (msg == 1) {
+        lamp.classList.add("focus");
+    } else {
+        lamp.classList.remove("focus");
+    }
 }
 
-function test_send() {
-    msg = "TEST";
-    message = new Paho.MQTT.Message(msg);
-    message.destinationName = "flexflow/asm/rpi01";
-    mqtt.send(message); 
-}
-
-function test_subscribe() {
-    mqtt.subscribe("flexflow/#");
+function subscribe() {
+    mqtt.subscribe("flexflow/asm/rpi01/#");
     mqtt.onMessageArrived = on_message;
 }
 

@@ -8,11 +8,85 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
     <script src="./script.js"></script>
+
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <button onclick="test_send();">TEST SEND</button>
-    <button onclick="test_subscribe();">TEST SUBSCRIBE</button>
+    <hmi-interface>
+        <img src="./res/logo.png" class="logo-image">
+        <img src="./res/conveyor.png" class="conveyor-image">
+
+        <io-panel>
+            <input-panel>
+                <row-item>
+                    <stat-item id="I0x0">
+                        <item-lamp></item-lamp>
+                        <item-label>PUSH BUTTON SWITCH</item-label>
+                        <item-address>%IX0.0</item-address>
+                    </stat-item>
+                    <stat-item id="I0x1">
+                        <item-lamp></item-lamp>
+                        <item-label>EMERGENCY SWITCH</item-label>
+                        <item-address>%IX0.1</item-address>
+                    </stat-item>
+                    <stat-item id="I0x2">
+                        <item-lamp></item-lamp>
+                        <item-label>PHOTO SENSOR 1</item-label>
+                        <item-address>%IX0.2</item-address>
+                    </stat-item>
+                </row-item>
+                <row-item>
+                    <stat-item id="I0x3">
+                        <item-lamp></item-lamp>
+                        <item-label>PHOTO SENSOR 2</item-label>
+                        <item-address>%IX0.3</item-address>
+                    </stat-item>
+                    <stat-item id="I0x4">
+                        <item-lamp></item-lamp>
+                        <item-label>PHOTO SENSOR 3</item-label>
+                        <item-address>%IX0.4</item-address>
+                    </stat-item>
+                    <stat-item id="I0x5">
+                        <item-lamp></item-lamp>
+                        <item-label>INDUCTIVE SENSOR</item-label>
+                        <item-address>%IX0.5</item-address>
+                    </stat-item>
+                </row-item>
+            </input-panel>
+            <output-panel>
+                <row-item>
+                    <stat-item id="Q0x0">
+                        <item-lamp></item-lamp>
+                        <item-label>CONVEYOR BELT</item-label>
+                        <item-address>%QX0.0</item-address>
+                    </stat-item>
+                    <stat-item id="Q0x1">
+                        <item-lamp></item-lamp>
+                        <item-label>STEP MOTOR</item-label>
+                        <item-address>%QX0.1</item-address>
+                    </stat-item>
+                    <stat-item id="Q0x2">
+                        <item-lamp></item-lamp>
+                        <item-label>RED LAMP</item-label>
+                        <item-address>%QX0.2</item-address>
+                    </stat-item>
+                </row-item>
+                <row-item>
+                    <stat-item id="Q0x3">
+                        <item-lamp></item-lamp>
+                        <item-label>YELLOW LAMP</item-label>
+                        <item-address>%QX0.3</item-address>
+                    </stat-item>
+                    <stat-item id="Q0x4">
+                        <item-lamp></item-lamp>
+                        <item-label>GREEN LAMP</item-label>
+                        <item-address>%QX0.4</item-address>
+                    </stat-item>
+                </row-item>
+            </output-panel>
+        </io-panel>
+    </hmi-interface>
 </body>
 
 </html>
