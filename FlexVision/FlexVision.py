@@ -11,7 +11,7 @@ PORT = 1883
 
 # MQTT 세션 선언
 SESSION = "asm"
-MODULE = "jetson01"
+MODULE = "rpi01"
 
 # 색상 별 메모리 주소 선언
 TOPIC_RED   = TOPIC(SESSION, MODULE, MEMORY(INT, 1, 0))
