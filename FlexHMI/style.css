@@ -47,6 +47,20 @@ io-panel {
     justify-content: space-between;
 }
 
+debug-panel {
+    background: #FFFFFF50;
+    position: absolute;
+    width: 44rem;
+    height: 26rem;
+    right: 2rem;
+    bottom: 2rem;
+    border-radius: 12px;
+    filter: drop-shadow(0 6px 24px #00000021);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    overflow: hidden;
+}
+
 input-panel,
 output-panel {
     background: #FFFFFF50;
@@ -59,6 +73,70 @@ output-panel {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+}
+
+counter-panel {
+    position: absolute;
+    background: #FFFFFF50;
+    width: 44rem;
+    height: 30rem;
+    top: 2rem;
+    right: 2rem;
+    border-radius: 12px;
+    filter: drop-shadow(0 6px 24px #00000021);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+counter-box {
+    position: relative;
+    background: #FFFFFF50;
+    width: calc(100% - 2rem);
+    height: calc(100% - 2rem);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    filter: drop-shadow(0 6px 24px #00000021);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+#rctr {
+    background: #ff2b2b50;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+#gctr {
+    background: #2fef2950;
+}
+
+#yctr {
+    background: #e4ff3750;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+counter-label {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+counter-int {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    font-weight: 700;
 }
 
 row-item {
@@ -105,4 +183,16 @@ item-address {
 
 .focus {
     background: #51FF8C;
+}
+
+debug-message {
+    width: 100%;
+    height: calc(100% - 2rem);
+    padding: 1rem;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-size: 1.2rem;
 }

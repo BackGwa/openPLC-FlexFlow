@@ -7,17 +7,20 @@ function randint(min, max) {
 }
 
 function on_connect() {
-    console.log("FlexHMI - MQTT Connected!");
+    debug("FlexHMI - MQTT Connected!");
     subscribe();
 }
 
 function on_failure() {
-    console.log("FlexHMI - MQTT Connect Failure!");
+    debug("FlexHMI - MQTT Connect Failure!");
 }
 
 function on_message(message) {
     msg = message.payloadString;
     topic = message.destinationName.split("/");
+    debug("FlexHMI - MQTT Message")
+    debug(`TOPIC : ${message.destinationName}`);
+    debug(`MESSAGE : ${message.payloadString}`);
 
     if (topic[3] == "INPUT") {
         query = "I";
@@ -29,23 +32,30 @@ function on_message(message) {
 
     query += topic[5];
 
-    stat = document.querySelector(`#${query}`);
-    lamp = stat.querySelector("item-lamp");
-
-    if (msg == 1) {
-        lamp.classList.add("focus");
-    } else {
-        lamp.classList.remove("focus");
+    if (topic[4] == "BOOL") {
+        stat = document.querySelector(`#${query}`);
+        lamp = stat.querySelector("item-lamp");
+    
+        if (msg == 1) {
+            lamp.classList.add("focus");
+        } else {
+            lamp.classList.remove("focus");
+        }
+    } else if (topic[4] == "INT") {
+        stat = document.querySelector(`.${query}`);
+        counter = stat.querySelector("counter-int");
+        counter.innerText = msg;
     }
 }
 
 function subscribe() {
     mqtt.subscribe("flexflow/asm/rpi01/#");
+    debug(`FlexHMI - subscribe : flexflow/asm/rpi01/#`);
     mqtt.onMessageArrived = on_message;
 }
 
 function MQTT_connect() {
-    console.log(`FlexHMI - ${HOST}:${PORT} Connecting...`);
+    debug(`FlexHMI - ${HOST}:${PORT} Connecting...`);
 
     mqtt = new Paho.MQTT.Client(HOST, PORT, `flexhmi${randint(0, 65535)}`);
     
@@ -56,6 +66,10 @@ function MQTT_connect() {
     }
 
     mqtt.connect(options);
+}
+
+function debug(message) {
+    document.querySelector("debug-message").innerHTML += message + "<br>";
 }
 
 document.addEventListener("DOMContentLoaded", MQTT_connect)
