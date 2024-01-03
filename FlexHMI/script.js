@@ -70,6 +70,7 @@ function MQTT_connect() {
 
 function debug(message) {
     document.querySelector("debug-message").innerHTML += message + "<br>";
+    document.querySelector("debug-message").scrollTop =  document.querySelector("debug-message").scrollHeight;
 }
 
 document.addEventListener("DOMContentLoaded", MQTT_connect)
