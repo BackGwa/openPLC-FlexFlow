@@ -48,8 +48,10 @@ class FlexMQTT:
         """
         try:
             self.client.connect(host=self.broker, port=self.port)
+            debug.success(f"'{self.broker}:{self.port}'와 성공적으로 연결되었습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err(f"'{self.broker}:{self.port}'와 연결 시도 중 오류가 발생했습니다!", e)
             return False
         
     def topic(self, session: str, module: str, types: str, data: str):
@@ -90,6 +92,8 @@ class FlexMQTT:
         """
         try:
             self.client.publish(topic, data)
+            debug.alert("토픽을 정상적으로 발행하였습니다.", f"대상 토픽 : {topic}", f"발행 된 값 : {topic}")
             return True
-        except:
+        except Exception as e:
+            debug.warn("토픽을 발행하던 도중 오류가 발생했습니다!", e)
             return False
