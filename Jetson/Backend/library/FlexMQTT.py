@@ -1,4 +1,8 @@
+from Jetson.Backend.library.FlexDebug import FlexDebug
 from paho.mqtt.client import Client
+
+
+debug = FlexDebug()
 
 
 class FlexMQTT:
@@ -6,7 +10,6 @@ class FlexMQTT:
     # FlexMQTT
     FlexFlow를 위한, 유연하고 빠른 MQTT 라이브러리.
     """
-    
     def __init__(self, broker: str, port: int):
         """
         ## FlexMQTT 초기화

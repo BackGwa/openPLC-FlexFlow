@@ -1,7 +1,11 @@
 import cv2
 
 from threading import Thread
+from Jetson.Backend.library.FlexDebug import FlexDebug
 from ultralytics import YOLO
+
+
+debug = FlexDebug()
 
 
 class FlexVision:
@@ -9,7 +13,6 @@ class FlexVision:
     # FlexVision
     FlexFlow를 위한, 유연하고 빠른 비전 연산 라이브러리.
     """
-    
     def __init__(self, model_path: str, device_index: int):
         """
         ## FlexVision 초기화
@@ -19,56 +22,65 @@ class FlexVision:
 
         Args:
             model_path: 연산을 위한 모델의 경로를 정의합니다.
-            device_index: 연산을 위한 캡쳐 디바이스의 번호를 정의합니다.
+            device_index: 연산을 위한 캡쳐 장치의 번호를 정의합니다.
         """
-        self.processing = False             # 연산 여부
-        
-        self.model_path = model_path        # 모델 경로
-        self.device_index = device_index    # 캡쳐 디바이스 번호
-        
-        self.handler_func = None            # 핸들러 함수
-        self.handler_args = None            # 핸들러 인자
-        
-        self.capture = None                 # 캡쳐 디바이스 객체
-        self.ROI = None                     # 캡쳐 관심 영역
-        
-        self.model = None                   # 비전 모델
-        self.prob = 0.75                    # 식별 정확도
-        
-        self.classes = None                 # 모델의 전체 클래스
-        self.class_cache = None             # 연산 클래스 캐시
-        self.best = None                    # 최상위 확률의 클래스와 값 
+        try:
+            self.processing = False             # 연산 여부
+            
+            self.model_path = model_path        # 모델 경로
+            self.device_index = device_index    # 캡쳐 장치 번호
+            
+            self.handler_func = None            # 핸들러 함수
+            self.handler_args = None            # 핸들러 인자
+            
+            self.capture = None                 # 캡쳐 장치 객체
+            self.ROI = None                     # 캡쳐 관심 영역
+            
+            self.model = None                   # 비전 모델
+            self.prob = 0.75                    # 식별 정확도
+            
+            self.classes = None                 # 모델의 전체 클래스
+            self.class_cache = None             # 연산 클래스 캐시
+            self.best = None                    # 최상위 확률의 클래스와 값
+            
+            debug.success("FlexVision 라이브러리를 성공적으로 초기화했습니다!")
+        except Exception as e:
+            debug.err("FlexVision 라이브러리를 초기화하는데 실패했습니다!", e)
         
     def attach(self):
         """
-        ## 캡쳐 디바이스 활성화
-        - 캡쳐 디바이스를 활성화합니다.
+        ## 캡쳐 장치 활성화
+        - 캡쳐 장치를 활성화합니다.
 
         ---
 
         Returns:
-            success: 성공적으로 캡쳐 디바이스와 연결되었는지 반환합니다.
+            success: 성공적으로 캡쳐 장치와 연결되었는지 반환합니다.
         """
         try:
             self.capture = cv2.VideoCapture(self.device_index)
+            debug.success(f"{self.device_index}번 캡쳐 장치에 성공적으로 연결했습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("캡쳐 장치에 연결을 실패하였습니다!", e)
             return False
            
     def detach(self):
         """
-        ## 캡쳐 디바이스 비활성화
-        - 캡쳐 디바이스를 비활성화합니다.
+        ## 캡쳐 장치 비활성화
+        - 캡쳐 장치를 비활성화합니다.
 
         ---
 
         Returns:
-            success: 성공적으로 캡쳐 디바이스와 연결 해제되었는지 반환합니다.
+            success: 성공적으로 캡쳐 장치와 연결 해제되었는지 반환합니다.
         """
         try:
             self.capture.release()
+            debug.success(f"{self.device_index}번 캡쳐 장치와 성공적으로 연결해제 했습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("캡쳐 장치를 연결 해제하는 도중 오류가 발생했습니다!", e)
             return False
         
     def load_model(self, method: str = "cpu"):
@@ -97,7 +109,7 @@ class FlexVision:
     def call_frame(self):
         """
         ## 프레임 가져오기
-        - 현재 캡쳐 디바이스의 프레임을 반환합니다.
+        - 현재 캡쳐 장치의 프레임을 반환합니다.
         프레임을 읽지 못한 경우에는, `None`을 반환합니다.
 
         ---
@@ -114,7 +126,7 @@ class FlexVision:
     def show_frame(self, frame: cv2.typing.MatLike):
         """
         ## 프레임 보여주기
-        - 현재 캡쳐 디바이스의 프레임과 ROI 영역을 함께 보여줍니다.
+        - 현재 캡쳐 장치의 프레임과 ROI 영역을 함께 보여줍니다.
 
         ---
 
