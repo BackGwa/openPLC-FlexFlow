@@ -1,12 +1,10 @@
 from library.FlexVision import FlexVision
 from library.FlexMQTT import FlexMQTT
-from library.FlexDebug import FlexDebug
 
 
 # 클래스 인스턴스 생성
-vision = FlexVision("./model/StelraCMF.pt", 0)
+vision = FlexVision("./models/StelraCMF.pt", 0)
 mqtt = FlexMQTT("127.0.0.1", 2006)
-debug = FlexDebug()
 
 
 # 카운터 딕셔너리 선언
@@ -32,7 +30,8 @@ TOPIC_CAMERA = mqtt.topic(SESSION, MODULE, mqtt.MEMORY, "0x0")
 def init():
     vision.load_model(method="cuda")
     vision.set_ROI((210, 302, 154, 152))
-    vision.detect_handler((count_update), ((vision.best)))
+    vision.set_prob(0.6)
+    vision.detect_handler(count_update)
     
     mqtt.start()
 
@@ -44,7 +43,8 @@ def main():
 
 
 # 카운터 업데이트
-def count_update(value):
+def count_update():
+    value = vision.best
     if value[0] != "none":
         count[value[0]] += 1
         mqtt.publish(TOPIC[value[0]], count[value[0]])

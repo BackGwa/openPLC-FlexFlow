@@ -1,4 +1,4 @@
-from Jetson.Backend.library.FlexDebug import FlexDebug
+from library.FlexDebug import FlexDebug
 from paho.mqtt.client import Client
 
 

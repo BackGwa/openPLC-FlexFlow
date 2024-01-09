@@ -1,7 +1,7 @@
 import cv2
 
 from threading import Thread
-from Jetson.Backend.library.FlexDebug import FlexDebug
+from library.FlexDebug import FlexDebug
 from ultralytics import YOLO
 
 
@@ -40,7 +40,7 @@ class FlexVision:
             self.prob = 0.75                    # 식별 정확도
             
             self.classes = None                 # 모델의 전체 클래스
-            self.class_cache = None             # 연산 클래스 캐시
+            self.class_cache = [None, None]     # 연산 클래스 캐시
             self.best = None                    # 최상위 확률의 클래스와 값
             
             debug.success("FlexVision 라이브러리를 성공적으로 초기화했습니다!")
@@ -102,10 +102,12 @@ class FlexVision:
         try:
             self.model = YOLO(self.model_path)
             self.model.to(method)
+            debug.success(f"성공적으로 '{self.model_path}' 모델을 가져왔습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("모델을 가져오는 도중 오류가 발생했습니다!", e)
             return False
-        
+
     def call_frame(self):
         """
         ## 프레임 가져오기
@@ -122,7 +124,7 @@ class FlexVision:
             return frame
         else:
             return None
-        
+
     def show_frame(self, frame: cv2.typing.MatLike):
         """
         ## 프레임 보여주기
@@ -139,10 +141,11 @@ class FlexVision:
             success: 성공적으로 프레임을 표시했는지 반환합니다.
         """
         try:
-            frame = self.labeling_rect(frame, self.ROI_to_Boxed(self.ROI), "ROI")
-            cv2.imshow("FlexVision - 라이브뷰", frame)
+            frame = self.labeling_rect(frame, self.ROI_to_Boxed(), "ROI")
+            cv2.imshow("FlexVision", frame)
             return True
-        except:
+        except Exception as e:
+            debug.err("프레임을 표시하는 도중 오류가 발생했습니다!", e)
             return False
         
     def labeling_rect(self, frame: cv2.typing.MatLike, point: tuple, label: str):
@@ -164,10 +167,11 @@ class FlexVision:
             frame: 라벨링을 완료한, 프레임을 반환합니다.
         """
         try:
-            frame = cv2.rectangle(frame, point[0], point[1], (0, 0, 255), 2)
-            frame = cv2.putText(frame, label, (point[0][0], point[0][1] - 8), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
+            frame = cv2.rectangle(frame, point[0], point[1], (0, 0, 255), 3)
+            frame = cv2.putText(frame, label, (point[0][0], point[0][1] - 8), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255))
             return frame
-        except:
+        except Exception as e:
+            debug.err("영역 라벨링 도중 오류가 발생했습니다!", e)
             return frame
     
     def labeling_dict(self, frame: cv2.typing.MatLike, dict_label: dict):
@@ -187,46 +191,46 @@ class FlexVision:
         Returns:
             frame: 라벨링을 완료한, 프레임을 반환합니다.
         """
-        try:        
+        try: 
             for index, item in enumerate(dict_label.items()):
-                frame = cv2.putText(frame, f"{item[0]} : {item[1]}", (16, 32 * (index + 1)), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255))
+                frame = cv2.putText(frame, f"{item[0]} : {item[1]}", (16, 32 * (index + 1)), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255))
             return frame
-        except:
+        except Exception as e:
+            debug.err("딕셔너리 아이템 라벨링 도중 오류가 발생했습니다!", e)
             return frame
     
     def call_handler(self):
         """
         ## 핸들러 호출
-        - 등록 된, 핸들러의 모든 함수를 인자와 함께 실행합니다.
-        함수는 핸들러에 등록한 순서대로 실행됩니다.
-        
+        - 등록 된, 핸들러의 함수를 인자와 함께 실행합니다.
+
         ---
         
         Returns:
             success: 성공적으로 핸들러를 실행했는지 반환합니다.
         """
         try:
-            if func:
-                for index, func in enumerate(self.handler_func):
-                    if self.handler_args[index] != ():
-                        func(self.handler_args[index])
-                    else:
-                        func()
+            if self.handler_func != None:
+                if self.handler_args != None:
+                    self.handler_func(self.handler_args)
+                else:
+                    self.handler_func()
+            debug.success("성공적으로 핸들러를 호출하였습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("핸들러 호출 도중 오류가 발생했습니다!", e)
             return False
     
-    def detect_handler(self, function: tuple, args: tuple = (())):
+    def detect_handler(self, function, args: tuple = None):
         """
         ## 핸들러 등록
         - 새로운 클래스를 감지하였을 때 인자와 함께 함수를 실행합니다.
-        튜플 및 리스트를 사용하여, 여러 개의 함수 및 인자를 등록할 수 있습니다.
         
         ---
         
         Args:
             function: 새로운 클래스 감지 시 실행되는 함수입니다.
-            args: 함수에 전달되는 인자입니다. (기본값 : `(())`)
+            args: 함수에 전달되는 인자입니다. (기본값 : `()`)
             
         ---
         
@@ -236,8 +240,10 @@ class FlexVision:
         try:
             self.handler_func = function
             self.handler_args = args
+            debug.success("성공적으로 핸들러를 등록하였습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("핸들러 등록 도중 오류가 발생했습니다!", e)
             return False
     
     def set_ROI(self, ROI: tuple = ()):
@@ -261,8 +267,10 @@ class FlexVision:
                 self.ROI = cv2.selectROIs("FlexVision - 관심 영역 선택 툴", self.call_frame())
             else:
                 self.ROI = ROI
+            debug.success("성공적으로 관심 영역 설정하였습니다!")
             return True
-        except:
+        except Exception as e:
+            debug.err("관심 영역 설정 도중 오류가 발생했습니다!", e)
             return False
     
     def ROI_to_Boxed(self):
@@ -279,7 +287,8 @@ class FlexVision:
         try:
             return ((self.ROI[0], self.ROI[1]),
                     (self.ROI[2] + self.ROI[0], self.ROI[3] + self.ROI[1]))
-        except:
+        except Exception as e:
+            debug.err("평면 좌표 변환 도중 오류가 발생했습니다!", e)
             return None
     
     def set_prob(self, prob: float = 0.75):
@@ -300,7 +309,8 @@ class FlexVision:
         try:
             self.prob = prob
             return True
-        except:
+        except Exception as e:
+            debug.err("모델 정확도 설정 도중 오류가 발생했습니다!", e)
             return False
     
     def ROI_frame(self, frame: cv2.typing.MatLike):
@@ -331,7 +341,7 @@ class FlexVision:
         
         Args:
             window: 프레임을 윈도우 창으로 표시할 지 선택합니다. (기본 값 : `False`)
-            dict_labal: 윈도우 창에 표시할 딕셔너리를 설정합니다. (기본 값 : `None`)
+            dict_labal: 윈도우 창에 표시할 딕셔너리를 설정합니다. (기본 값 : `{}`)
             exit_key: 윈도우 창을 닫을 키를 지정합니다. (기본 값 : `q`)
             
         ---
@@ -342,13 +352,14 @@ class FlexVision:
         try:
             if not self.processing:
                 self.processing = True
-                T = Thread(self.__start__, args=(window, dict_labal, exit_key))
+                T = Thread(target=self.__start__, args=(window, dict_labal, exit_key))
                 T.start()
             return True
-        except:
+        except Exception as e:
+            debug.err("연산 작업 시작 도중 오류가 발생했습니다!", e)
             return False
     
-    def __start__(self, window: bool, dict_labal: dict, exit_key: str):
+    def __start__(self, window: bool, dict_label: dict, exit_key: str):
         """
         ## 비전 연산 시작
         - 비전 연산을 시작합니다.
@@ -362,26 +373,25 @@ class FlexVision:
         """
         while self.processing:
             frame = self.call_frame()
+        
+            ROI_area = self.ROI_frame(frame)
+            result = self.model(ROI_area, verbose=False)[0]
             
-            if frame:
-                ROI_area = self.ROI_frame(frame)
-                result = self.model(ROI_area, verbose=False)[0]
+            self.classes    = result.names
+            self.best       = (self.classes[result.probs.top1], float(result.probs.top1conf))
+            
+            if (self.best[1] >= self.prob and
+                self.best[0] != self.class_cache[0]):
+                    self.call_handler()
                 
-                self.classes    = result.names
-                self.best       = (self.classes[result.probs.top1], result.probs.top1conf)
-                
-                if (self.probs <= self.best[1] and
-                    self.best != self.class_cache):
-                        self.call_handler()
-                    
-                self.class_cache = self.best
-                
-                if window:
-                    frame = (dict_labal) if self.labeling_dict(frame) else frame
-                    self.show_frame(frame)
-                
-                if cv2.waitKey(1) & 0xFF == ord(exit_key) and window:
-                    break
+            self.class_cache = self.best
+            
+            if window:
+                frame = self.labeling_dict(frame, dict_label)
+                self.show_frame(frame)
+            
+            if cv2.waitKey(1) & 0xFF == ord(exit_key):
+                break
 
         if window:
             cv2.destroyAllWindows()
