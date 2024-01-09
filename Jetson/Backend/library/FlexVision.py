@@ -246,7 +246,7 @@ class FlexVision:
             debug.err("핸들러 등록 도중 오류가 발생했습니다!", e)
             return False
     
-    def set_ROI(self, ROI: tuple = ()):
+    def set_ROI(self, ROI: tuple = (0, 0, 0, 0)):
         """
         ## 관심 영역 설정
         - ROI 값을 사용하여, 관심 영역을 설정하거나,
@@ -255,7 +255,7 @@ class FlexVision:
         ---
         
         Args:
-            ROI: 설정 할 관심 영역 좌표 값입니다. (기본값 : `()`)
+            ROI: 설정 할 관심 영역 좌표 값입니다. (기본값 : `(0, 0, 0, 0)`)
             
         ---
         
@@ -263,8 +263,9 @@ class FlexVision:
             success: 관심 영역 설정 성공 여부를 반환합니다.
         """
         try:
-            if not ROI:
-                self.ROI = cv2.selectROIs("FlexVision - 관심 영역 선택 툴", self.call_frame())
+            if ROI == (0, 0, 0, 0):
+                self.ROI = cv2.selectROI("FlexVision - ROI Selector", self.call_frame())
+                cv2.destroyAllWindows()
             else:
                 self.ROI = ROI
             debug.success("성공적으로 관심 영역 설정하였습니다!")

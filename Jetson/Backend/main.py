@@ -28,6 +28,7 @@ TOPIC_CAMERA = mqtt.topic(SESSION, MODULE, mqtt.MEMORY, "0x0")
 
 # 프로그램 초기화
 def init():
+    vision.attach()
     vision.load_model(method="cuda")
     vision.set_ROI((210, 302, 154, 152))
     vision.set_prob(0.6)
@@ -38,8 +39,7 @@ def init():
 
 # 메인 프로그램
 def main():
-    if vision.attach():
-        vision.start(window=True, dict_labal=count)
+    vision.start(window=True, dict_labal=count)
 
 
 # 카운터 업데이트
