@@ -1,1 +1,0 @@
-mosquitto -c /etc/mosquitto/conf.d/custom.conf
