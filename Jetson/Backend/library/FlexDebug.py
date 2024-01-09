@@ -31,7 +31,6 @@ class FlexDebug:
         print(color + self.BOLD + title + self.RESET + self.BOLD + ": " + self.RESET, end="")
         for message in args:
             print(message)
-        print("\n")
 
     def err(self, *args):
         """
@@ -46,6 +45,7 @@ class FlexDebug:
         - 경고 메세지를 출력합니다.
         """
         self.__debug_message__("경고", self.YELLOW, *args)
+        exit()
         
     def success(self, *args):
         """
